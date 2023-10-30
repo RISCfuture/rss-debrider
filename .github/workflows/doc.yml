@@ -36,7 +36,7 @@ jobs:
            generate-documentation --target rss-debrider --output-path ./docs \
            --disable-indexing \
            --transform-for-static-hosting \
-           --hosting-base-path rss_debrider
+           --hosting-base-path rss-debrider
       - name: Upload
         uses: actions/upload-pages-artifact@v1
         with:

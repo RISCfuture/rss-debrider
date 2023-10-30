@@ -34,7 +34,7 @@ To use RSS-Debrider, you must have the following:
 * A hosted RSS feed of magnet links you wish to download, such as from ShowRSS.
 * A paid, premium Real-Debrid account in good standing.
 * A Real-Debrid API key, which you can retrieve from https://real-debrid.com/apitoken
-* A Synology NAS running DSM 6.2 or later, with Download Station installed.
+* A Synology NAS running DSM 7 or later, with Download Station installed.
 * The username and password to a Synology user on that NAS, with permissions to
   submit files to Download Station via the API.
 * A computer running macOS 14 or later that can periodically run the
@@ -62,15 +62,15 @@ like this:
     <string>com.yourdomain.rss-debrider</string>
     <key>ProgramArguments</key>
     <array>
-        <string>~/Applications/rss-debrider</string>
+        <string>/path/to/rss-debrider</string>
         <string>-k</string>
-        <string>YOUR_REAL_DEBRID_API_KEY/string>
+        <string>YOUR_REAL_DEBRID_API_KEY</string>
         <string>-h</string>
-        <string>YOUR_SYNOLOGY_HOSTNAME/string>
+        <string>YOUR_SYNOLOGY_HOSTNAME</string>
         <string>-u</string>
-        <string>YOUR_SYNOLOGY_USERNAME/string>
+        <string>YOUR_SYNOLOGY_USERNAME</string>
         <string>-P</string>
-        <string>YOUR_SYNOLOGY_PASSWORD/string>
+        <string>YOUR_SYNOLOGY_PASSWORD</string>
         <string>YOUR_RSS_URL</string>
     </array>
     <key>StandardErrorPath</key>
@@ -99,7 +99,9 @@ attention to the program arguments passed to `rss-debrider`, and also note that:
   magnet links that have already been downloaded.
 * You can include `-d` as an argument to increase the verbosity of logging to
   `StandardOutPath`, to help troubleshoot problems.
-  
+* Special characters in URLs will need to be escaped. When in doubt, create the
+  plist using Xcode to ensure proper formatting.
+
 Use `launchctl load -w ~/Library/LaunchAgents/com.yourdomain.rss-debrider.plist`
 to begin periodic polling of your RSS feed. `launchctl unload` will temporarily
 stop your launch agent.
