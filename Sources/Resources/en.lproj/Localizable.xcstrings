@@ -1,0 +1,195 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "<unknown URL>" : {
+
+    },
+    "Action is not authorized for the Synology user." : {
+      "comment" : "failure reason"
+    },
+    "An invalid API name was provided to the Synology API." : {
+      "comment" : "failure reason"
+    },
+    "An invalid method name was provided to the Synology API." : {
+      "comment" : "failure reason"
+    },
+    "An invalid parameter was provided to the Synology API." : {
+      "comment" : "failure reason"
+    },
+    "An unknown Synology API error occurred." : {
+      "comment" : "failure reason"
+    },
+    "API info not yet downloaded from Synology" : {
+      "comment" : "error description"
+    },
+    "Bad Real-Debrid API key." : {
+      "comment" : "failure reason"
+    },
+    "Call getAPIs() before making API calls using the Synology client." : {
+      "comment" : "recovery suggestion"
+    },
+    "Check the output of getAPIs() to verify you are using the correct API name." : {
+      "comment" : "recovery suggestion"
+    },
+    "Consult the Real-Debrid API documentation for more information." : {
+      "comment" : "recovery suggestion"
+    },
+    "Consult the Synology API documentation for more information." : {
+      "comment" : "recovery suggestion"
+    },
+    "Couldn’t download torrent “%@”: An unknown error occurred." : {
+      "comment" : "failure reason"
+    },
+    "Couldn’t download torrent “%@”: Failed to get magnet data." : {
+      "comment" : "failure reason"
+    },
+    "Couldn’t download torrent “%@”: Torrent contains a virus." : {
+      "comment" : "failure reason"
+    },
+    "Couldn’t download torrent “%@”: Torrent is dead." : {
+      "comment" : "failure reason"
+    },
+    "Double-check the value passed to the -r option." : {
+      "comment" : "recovery suggestion"
+    },
+    "Given Synology API version is unsupported" : {
+      "comment" : "error description"
+    },
+    "Hostname for Synology NAS:" : {
+      "comment" : "prompt"
+    },
+    "Improperly formatted URL" : {
+      "comment" : "error description"
+    },
+    "Make a login request before using that API method." : {
+      "comment" : "recovery suggestion"
+    },
+    "Make sure you are a premium Real-Debrid subscriber, and your account is in good standing." : {
+      "comment" : "recovery suggestion"
+    },
+    "Must be logged in to use that Synology API method" : {
+      "comment" : "error description"
+    },
+    "Non-success response from Real-Debrid API" : {
+      "comment" : "error description"
+    },
+    "Non-success response from RSS provider" : {
+      "comment" : "error description"
+    },
+    "Password for user %@:" : {
+      "comment" : "prompt"
+    },
+    "Real-Debrid account is not authorized." : {
+      "comment" : "failure reason"
+    },
+    "Real-Debrid API returned error %lld (%@): %@" : {
+      "comment" : "failure reason",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Real-Debrid API returned error %1$lld (%2$@): %3$@"
+          }
+        }
+      }
+    },
+    "Real-Debrid couldn’t download torrent." : {
+      "comment" : "error description"
+    },
+    "Retrieve a new session by making another login request to the Synology API." : {
+      "comment" : "recovery suggestion"
+    },
+    "Synology API “%@” was not found in API info." : {
+      "comment" : "failure reason"
+    },
+    "Synology API is not supported in the provided version." : {
+      "comment" : "failure reason"
+    },
+    "Synology API method called before API info was downloaded." : {
+      "comment" : "failure reason"
+    },
+    "That Synology API requires a logged-in session." : {
+      "comment" : "failure reason"
+    },
+    "The current Synology session was interrupted by another login." : {
+      "comment" : "failure reason"
+    },
+    "The response from “%@” had status code %lld." : {
+      "comment" : "failure reason",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The response from “%1$@” had status code %2$lld."
+          }
+        }
+      }
+    },
+    "The response from “%@” was not an HTTP response." : {
+      "comment" : "failure reason"
+    },
+    "The Synology API returned an error" : {
+      "comment" : "error description"
+    },
+    "The Synology session has timed out." : {
+      "comment" : "failure reason"
+    },
+    "The URL “%@” could not be parsed as a URL." : {
+      "comment" : "failure reason"
+    },
+    "Try a different torrent or magnet URL." : {
+      "comment" : "recovery suggestion"
+    },
+    "Try the download again later." : {
+      "comment" : "recovery suggestion"
+    },
+    "Try using a newer or older API version." : {
+      "comment" : "recovery suggestion"
+    },
+    "Unexpected response from Real-Debrid API" : {
+      "comment" : "error description"
+    },
+    "Unexpected response from RSS provider" : {
+      "comment" : "error description"
+    },
+    "Unexpected response from Synology API" : {
+      "comment" : "error description"
+    },
+    "Unknown Synology API" : {
+      "comment" : "error description"
+    },
+    "Username for Synology NAS:" : {
+      "comment" : "prompt"
+    },
+    "Validate the data you are passing to the Synology API." : {
+      "comment" : "recovery suggestion"
+    },
+    "Verify that the RSS feed is returning correct magnetic URLs." : {
+      "comment" : "recovery suggestion"
+    },
+    "Verify that the server is accessible from your computer." : {
+      "comment" : "recovery suggestion"
+    },
+    "Verify that the Synology API hostname and path is correct." : {
+      "comment" : "recovery suggestion"
+    },
+    "Verify the permissions granted to the Synology user." : {
+      "comment" : "recovery suggestion"
+    },
+    "Verify the RSS URL passed to rss-debrider." : {
+      "comment" : "recovery suggestion"
+    },
+    "Version %llu is not supported for Synology API “%@”." : {
+      "comment" : "failure reason",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version %1$llu is not supported for Synology API “%2$@”."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -12,12 +12,14 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.0.0")
     ],
     targets: [
-        .executableTarget(name: "rss-debrider", dependencies: [
-            .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            .product(name: "Logging", package: "swift-log"),
-        ], resources: [
-            .process("Resources")
-        ])
-    ]
+        .executableTarget(name: "rss-debrider",
+                          dependencies: [
+                            .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                            .product(name: "Logging", package: "swift-log"),
+                          ],
+                          resources: [.process("Resources")])
+    ],
+    swiftLanguageModes: [.v6]
 )
+
 
