@@ -1,7 +1,7 @@
 import Foundation
 
 enum OnePassword {
-    class Client {
+    actor Client {
         let itemID: String
         
         init(itemID: String) {

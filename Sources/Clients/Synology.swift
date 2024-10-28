@@ -17,7 +17,7 @@ enum Synology {
      - SeeAlso: ``SynologyErrors``
      - SeeAlso: ``Response``
      */
-    class Client {
+    actor Client {
         private typealias Parameters = Dictionary<String, String>
         
         private static let apiInfoPath = "/webapi/entry.cgi"
@@ -198,7 +198,7 @@ enum Synology {
         @discardableResult
         private func executeRequest<T: Decodable>(_ request: URLRequest, decoder: T.Type) async throws -> T {
             let (data, _) = try await URLSession.shared.data(for: request)
-            logger.debug("Response from Synology", metadata: [
+            await logger.debug("Response from Synology", metadata: [
                 "url": .stringConvertible(request.url!),
                 "body": .string(.init(data: data, encoding: .utf8) ?? "<invalid utf8>")
             ])

@@ -25,7 +25,7 @@ enum RealDebrid {
      - SeeAlso: ``Response``
      - SeeAlso: ``RealDebridErrors``
      */
-    class Client {
+    actor Client {
         private typealias Parameters = Dictionary<String, String>
         
         private static let host = "api.real-debrid.com"
@@ -166,7 +166,7 @@ enum RealDebrid {
                 throw RealDebridErrors.badRepsonse(response)
             }
             
-            logger.debug("Response from Real-Debrid: \(response.statusCode)", metadata: [
+            await logger.debug("Response from Real-Debrid: \(response.statusCode)", metadata: [
                 "url": .stringConvertible(request.url!),
                 "body": .string(.init(data: data, encoding: .utf8) ?? "<invalid utf8>")
             ])

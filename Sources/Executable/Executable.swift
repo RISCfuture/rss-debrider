@@ -48,23 +48,25 @@ struct Executable: AsyncParsableCommand {
     
     mutating func run() async throws {
         try await withErrorHandling {
-            logger.logLevel = debug ? .debug : .notice
+            let debug = self.debug
+            Task { @MainActor in logger.logLevel = debug ? .debug : .notice }
             
             let rssClient = try await RSS.Client(feedURL: url, historyFileURL: historyFileURL)
             let onePWClient: OnePassword.Client? = itemID != nil ? .init(itemID: itemID!) : nil
             let synologyClient = try await getSynologyClient(onePWClient: onePWClient)
             
-            let urls = try rssClient.undownloadedLinks(rssClient.links())
+            let urls = try await rssClient.undownloadedLinks(rssClient.links())
             for await (url, debridedURL) in try debridURLs(urls) {
                 try await synologyClient.createTask(url: debridedURL)
-                try rssClient.markAsDownloaded(link: url)
-                logDownloadTask(url: url, debridedURL: debridedURL)
+                try await rssClient.markAsDownloaded(link: url)
+                await logDownloadTask(url: url, debridedURL: debridedURL)
             }
             
             try await synologyClient.logout()
         }
     }
     
+    @MainActor
     private func logDownloadTask(url: URL, debridedURL: URL) {
         if let name = RSS.displayName(forMagnetURL: url) {
             logger.notice("Added download task for \(name)", metadata: [

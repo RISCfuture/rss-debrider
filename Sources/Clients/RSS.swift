@@ -1,5 +1,5 @@
 import Foundation
-import RegexBuilder
+@preconcurrency import RegexBuilder
 
 /// Container module for code related to RSS feed consumption.
 enum RSS {
@@ -15,7 +15,7 @@ enum RSS {
      
      - SeeAlso: ``RSSErrors``
      */
-    class Client {
+    actor Client {
         private let data: Data
         private let historyFileURL: URL?
         
@@ -42,7 +42,7 @@ enum RSS {
          - Throws: Throws an error if the RSS feed could not be downloaded or
            parsed.
          */
-        convenience init(feedURL: URL, historyFileURL: URL? = nil) async throws {
+        init(feedURL: URL, historyFileURL: URL? = nil) async throws {
             let (data, response) = try await URLSession.shared.data(from: feedURL)
             
             guard let response = response as? HTTPURLResponse else { throw RSSErrors.badRepsonse(response) }
@@ -75,7 +75,7 @@ enum RSS {
             guard historyFileURL.isFileURL else { return links }
             guard FileManager.default.fileExists(atPath: historyFileURL.path) else { return links }
             
-            let history = try String(contentsOf: historyFileURL).components(separatedBy: "\n")
+            let history = try String(contentsOf: historyFileURL, encoding: .utf8).components(separatedBy: "\n")
             
             return links.filter { !history.contains($0.absoluteString) }
         }
@@ -94,7 +94,7 @@ enum RSS {
             guard historyFileURL.isFileURL else { return }
             
             let history: Array<String> = if FileManager.default.fileExists(atPath: historyFileURL.path) {
-                try String(contentsOf: historyFileURL).components(separatedBy: "\n")
+                try String(contentsOf: historyFileURL, encoding: .utf8).components(separatedBy: "\n")
             } else {
                 []
             }
@@ -108,7 +108,7 @@ enum RSS {
     @objc private class ParserDelegate: NSObject, XMLParserDelegate {
         var links: Array<URL> = []
         
-        private static let magnetURLRegex = Regex {
+        private let magnetURLRegex = Regex {
             Anchor.startOfLine
             "magnet:?xt=urn:btih:"
             OneOrMore(.any)
@@ -118,17 +118,21 @@ enum RSS {
         func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
             guard elementName == "enclosure" else { return }
             guard let urlString = attributeDict["url"] else { return }
-            guard try! Self.magnetURLRegex.firstMatch(in: urlString) != nil else {
-                logger.info("Not a magnet URL", metadata: [
-                    "url": .string(urlString)
-                ])
+            guard try! magnetURLRegex.firstMatch(in: urlString) != nil else {
+                Task { @MainActor in
+                    logger.info("Not a magnet URL", metadata: [
+                        "url": .string(urlString)
+                    ])
+                }
                 return
             }
             
             guard let decodedURLString = CFXMLCreateStringByUnescapingEntities(nil, urlString as CFString, nil) else {
-                logger.info("Couldn’t decode XML entities", metadata: [
-                    "url": .string(urlString)
-                ])
+                Task { @MainActor in
+                    logger.info("Couldn’t decode XML entities", metadata: [
+                        "url": .string(urlString)
+                    ])
+                }
                 return
             }
             guard let url = URL(string: decodedURLString as String) else { return }
