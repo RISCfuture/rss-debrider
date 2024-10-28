@@ -9,7 +9,7 @@ Swift and intended to be run as a cron job using a launch agent.
 ## Usage
 
 ```
-USAGE: rss-debrider --api-key <api-key> [--hostname <hostname>] [--port <port>] [--username <username>] [--password <password>] [--debug] <url>
+USAGE: rss-debrider --api-key <api-key> [--hostname <hostname>] [--port <port>] [--username <username>] [--password <password>] [--1pw-id <1pw-id>] [--debug] <url>
 
 ARGUMENTS:
   <url>                   The URL of the RSS feed of magnet links.
@@ -23,9 +23,9 @@ OPTIONS:
                           The username of the Synology NAS.
   -P, --password <password>
                           The password of the Synology NAS.
+  -i, --1pw-id <1pw-id>   The ID of the 1Password item containing the information for the Synology account.
   -d, --debug             Enable debug-level logging.
-  -h, --help              Show help information.
-```
+  -h, --help              Show help information.```
 
 ## Prerequisites
 
@@ -105,6 +105,22 @@ attention to the program arguments passed to `rss-debrider`, and also note that:
 Use `launchctl load -w ~/Library/LaunchAgents/com.yourdomain.rss-debrider.plist`
 to begin periodic polling of your RSS feed. `launchctl unload` will temporarily
 stop your launch agent.
+
+### Two-Factor Authentication
+
+If your Synology account requires two-factor authentication with an OTP token,
+you must have that token stored in a 1Password account. `rss-debrider` will use
+the ID of that 1Password item with the `op` CLI tool, instead of the
+`--username` and `--password` options:
+
+``` sh
+rss-debrider --api-key <api-key> --hostname <hostname> --port <port> --1pw-id <1pw-id> <url>
+``` 
+
+To find the ID of the 1Password item, use `op item list`.
+
+Note that using 1Password will not work well with Launch Agents, since 1Password
+will prompt you for your password or Touch ID.
 
 ## Source Documentation
 

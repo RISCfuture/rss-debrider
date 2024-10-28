@@ -78,18 +78,22 @@ enum Synology {
          Logs into the Synology NAS. This method must be called before using
          any authenticated API methods.
          
+         - Parameter OTP: The two-factor code for the account, if needed.
          - Returns: The session data from the login request. (This data is also
            stored in the client, and can be ignored.)
          - Throws: Throws a ``SynologyErrors`` error if an API error occurs.
          */
         @discardableResult
-        func login() async throws -> Login {
-            let components = try makeURLComponents(api: "SYNO.API.Auth", method: "login", version: 6, authenticated: false, queryParameters: [
+        func login(OTP: String? = nil) async throws -> Login {
+            var queryParameters = [
                 "account": username,
                 "passwd": password,
                 "session": Self.sessionName,
-                "format": "sid"
-            ])
+                "format": "sid",
+            ]
+            if let OTP { queryParameters["otp_code"] = OTP }
+            
+            let components = try makeURLComponents(api: "SYNO.API.Auth", method: "login", version: 6, authenticated: false, queryParameters: queryParameters)
             let request = try makeRequest(components: components)
             
             let data = try await executeRequest(request, decoder: Login.self)

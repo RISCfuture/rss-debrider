@@ -28,6 +28,10 @@ struct Executable: AsyncParsableCommand {
         help: "The password of the Synology NAS.")
     var password: String? = nil
     
+    @Option(name: [.customShort("i"), .customLong("1pw-id")],
+            help: "The ID of the 1Password item containing the information for the Synology account.")
+    var itemID: String? = nil
+    
     @Flag(
         name: .shortAndLong,
         help: "Enable debug-level logging.")
@@ -47,7 +51,8 @@ struct Executable: AsyncParsableCommand {
             logger.logLevel = debug ? .debug : .notice
             
             let rssClient = try await RSS.Client(feedURL: url, historyFileURL: historyFileURL)
-            let synologyClient = try await getSynologyClient()
+            let onePWClient: OnePassword.Client? = itemID != nil ? .init(itemID: itemID!) : nil
+            let synologyClient = try await getSynologyClient(onePWClient: onePWClient)
             
             let urls = try rssClient.undownloadedLinks(rssClient.links())
             for await (url, debridedURL) in try debridURLs(urls) {
