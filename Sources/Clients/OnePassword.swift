@@ -30,7 +30,7 @@ enum OnePassword {
             let process = Process()
             let pipe = Pipe()
             
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            process.executableURL = URL(filePath: "/usr/bin/env", directoryHint: .notDirectory)
             process.arguments = ["op"] + commands
             process.standardOutput = pipe
             
