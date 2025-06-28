@@ -5,7 +5,7 @@ import Logging
 @MainActor var logger = Logger(label: "codes.tim.rss-debrider")
 
 func logError(_ object: Sendable?) {
-    guard let object = object else { return }
+    guard let object else { return }
     Task { @MainActor in logger.error("\(object)") }
 }
 
@@ -20,7 +20,7 @@ func withErrorHandling(task: () async throws -> Void) async throws {
             ])
         }
         throw error
-    } catch let error {
+    } catch {
         Task { @MainActor in logger.critical("Error: \(error.localizedDescription)") }
         throw error
     }

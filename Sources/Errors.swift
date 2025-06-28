@@ -2,7 +2,7 @@ import Foundation
 
 /// Errors that can be thrown generally.
 enum Errors: Swift.Error {
-    
+
     /**
      Thrown when a URL cannot be parsed.
      
@@ -13,14 +13,14 @@ enum Errors: Swift.Error {
 
 /// Errors thrown by ``RSS/Client``.
 enum RSSErrors: Swift.Error {
-    
+
     /**
      Thrown when a non-HTTP response is received.
      
      - Parameter response: The response that was received.
      */
     case badRepsonse(_ response: URLResponse)
-    
+
     /**
      Thrown when a response has a non-success HTTP status code.
      
@@ -32,14 +32,14 @@ enum RSSErrors: Swift.Error {
 
 /// Errors thrown by ``RealDebrid/Client``.
 enum RealDebridErrors: Swift.Error {
-    
+
     /**
      Thrown when a non-HTTP response is received.
      
      - Parameter response: The response that was received.
      */
     case badRepsonse(_ response: URLResponse)
-    
+
     /**
      Thrown when a response has a non-success HTTP status code.
      
@@ -47,7 +47,7 @@ enum RealDebridErrors: Swift.Error {
      - Parameter body: The body of the response.
      */
     case badResponseStatus(_ response: HTTPURLResponse, body: Data)
-    
+
     /**
      Thrown when `/torrents/info/{id}` returns a failed status.
      
@@ -59,29 +59,29 @@ enum RealDebridErrors: Swift.Error {
 
 /// Errors thrown by ``Synology/Client``.
 enum SynologyErrors: Swift.Error {
-    
+
     /**
      Thrown when a non-HTTP response is received.
      
      - Parameter response: The response that was received.
      */
     case badRepsonse(_ response: URLResponse)
-    
+
     /// Thrown when an authenticated API request is made without an active
     /// session.
     case noSession
-    
+
     /**
      Thrown when the Synology API returns an error response.
      
      - Parameter error: The error code returned by the API.
      */
     case APIError(error: Synology.Error)
-    
+
     /// Thrown when an API request is made before ``Synology/Client/getAPIs()``
     /// is called.
     case APIInfoNotDownloaded
-    
+
     /**
      Thrown when an API name is provided that was given by
      ``Synology/Client/getAPIs()``.
@@ -89,7 +89,7 @@ enum SynologyErrors: Swift.Error {
      - Parameter api: The name of the API that was requested.
      */
     case unknownAPI(_ api: String)
-    
+
     /**
      Thrown when a version was given that is outside the supported range for the
      API.
@@ -107,14 +107,14 @@ extension Errors: LocalizedError {
                 return String(localized: "Improperly formatted URL", comment: "error description")
         }
     }
-    
+
     var failureReason: String? {
         switch self {
             case let .badURL(url):
                 return String(localized: "The URL “\(url)” could not be parsed as a URL.", comment: "failure reason")
         }
     }
-    
+
     var recoverySuggestion: String? {
         switch self {
             case .badURL:
@@ -134,13 +134,13 @@ extension RealDebridErrors: LocalizedError {
                 return String(localized: "Real-Debrid couldn’t download torrent.", comment: "error description")
         }
     }
-    
+
     var failureReason: String? {
         switch self {
             case let .badRepsonse(response):
                 let url = response.url?.absoluteString ?? String(localized: "<unknown URL>")
                 return String(localized: "The response from “\(url)” was not an HTTP response.", comment: "failure reason")
-                
+
             case let .badResponseStatus(response, body):
                 switch response.statusCode {
                     case 401:
@@ -150,7 +150,7 @@ extension RealDebridErrors: LocalizedError {
                     default:
                         return realDebridError(body: body) ?? defaultRealDebridError(response: response)
                 }
-                
+
             case let .torrentDownloadFailed(id, status):
                 return switch status {
                 case .dead:
@@ -166,12 +166,12 @@ extension RealDebridErrors: LocalizedError {
                 }
         }
     }
-    
+
     var recoverySuggestion: String? {
         switch self {
             case .badRepsonse:
                 return String(localized: "Verify that the server is accessible from your computer.", comment: "recovery suggestion")
-                
+
             case let .badResponseStatus(response, _):
                 switch response.statusCode {
                     case 401:
@@ -181,18 +181,17 @@ extension RealDebridErrors: LocalizedError {
                     default:
                         return String(localized: "Consult the Real-Debrid API documentation for more information.", comment: "recovery suggestion")
                 }
-                
+
             case let .torrentDownloadFailed(_, status):
                 switch status {
                     case .dead:
                         return String(localized: "Try the download again later.", comment: "recovery suggestion")
                     default:
                         return String(localized: "Try a different torrent or magnet URL.", comment: "recovery suggestion")
-
                 }
         }
     }
-    
+
     private func realDebridError(body: Data) -> String? {
         guard let body = try? JSONDecoder().decode(RealDebridError.self, from: body) else { return nil }
         return String(
@@ -200,7 +199,7 @@ extension RealDebridErrors: LocalizedError {
             comment: "failure reason"
         )
     }
-    
+
     private func defaultRealDebridError(response: HTTPURLResponse) -> String {
         let url = response.url?.absoluteString ?? String(localized: "<unknown URL>")
         return String(
@@ -219,7 +218,7 @@ extension RSSErrors: LocalizedError {
                 return String(localized: "Non-success response from RSS provider", comment: "error description")
         }
     }
-    
+
     var failureReason: String? {
         switch self {
             case let .badRepsonse(response):
@@ -233,7 +232,7 @@ extension RSSErrors: LocalizedError {
                 )
         }
     }
-    
+
     var recoverySuggestion: String? {
         switch self {
             case .badRepsonse:
@@ -261,7 +260,7 @@ extension SynologyErrors: LocalizedError {
                 return String(localized: "Given Synology API version is unsupported", comment: "error description")
         }
     }
-    
+
     var failureReason: String? {
         switch self {
             case let .APIError(code):
@@ -297,7 +296,7 @@ extension SynologyErrors: LocalizedError {
                 return String(localized: "Version \(version) is not supported for Synology API “\(api)”.", comment: "failure reason")
         }
     }
-    
+
     var recoverySuggestion: String? {
         switch self {
             case let .APIError(code):
@@ -311,7 +310,7 @@ extension SynologyErrors: LocalizedError {
                     case .unauthorized:
                         return String(localized: "Verify the permissions granted to the Synology user.", comment: "recovery suggestion")
                 }
-                
+
             case .badRepsonse:
                 return String(localized: "Verify that the Synology API hostname and path is correct.", comment: "recovery suggestion")
             case .noSession:
@@ -326,11 +325,11 @@ extension SynologyErrors: LocalizedError {
     }
 }
 
-fileprivate struct RealDebridError: Codable {
+private struct RealDebridError: Codable {
     var error: String
     var errorDetails: String
     var errorCode: Int
-    
+
     enum CodingKeys: String, CodingKey {
         case error
         case errorDetails = "error_details"

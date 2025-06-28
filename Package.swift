@@ -15,11 +15,9 @@ let package = Package(
         .executableTarget(name: "rss-debrider",
                           dependencies: [
                             .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                            .product(name: "Logging", package: "swift-log"),
+                            .product(name: "Logging", package: "swift-log")
                           ],
                           resources: [.process("Resources")])
     ],
     swiftLanguageModes: [.v6]
 )
-
-

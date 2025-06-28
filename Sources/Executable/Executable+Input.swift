@@ -9,7 +9,7 @@ extension Executable {
         }
         return input!
     }
-    
+
     func promptPassword(_ message: String, default: String?) -> String {
         var input = `default`
         while input == nil {

@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, macos-latest]
+        os: [macos-13, macos-latest]
         swift: ["6.0"]
     steps:
       - uses: actions/checkout@v4
@@ -26,3 +26,9 @@ jobs:
           swift-version: ${{ matrix.swift }}
       - name: Build
         run: swift build -v
+  lint:
+    name: Run Swiftlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: norio-nomura/action-swiftlint@3.2.1

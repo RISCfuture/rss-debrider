@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 @main
 struct Executable: AsyncParsableCommand {
@@ -7,65 +7,65 @@ struct Executable: AsyncParsableCommand {
         name: [.long, .customShort("k")],
         help: "The API key for Real-Debrid.")
     var apiKey: String
-    
+
     @Option(
         name: .shortAndLong,
         help: "The hostname of the Synology NAS.")
-    var hostname: String? = nil
-    
+    var hostname: String?
+
     @Option(
         name: .shortAndLong,
         help: "The port of the Synology NAS.")
     var port = 5000
-    
+
     @Option(
         name: .shortAndLong,
         help: "The username of the Synology NAS.")
-    var username: String? = nil
-    
+    var username: String?
+
     @Option(
         name: [.customShort("P"), .long],
         help: "The password of the Synology NAS.")
-    var password: String? = nil
-    
+    var password: String?
+
     @Option(name: [.customShort("i"), .customLong("1pw-id")],
             help: "The ID of the 1Password item containing the information for the Synology account.")
-    var itemID: String? = nil
-    
+    var itemID: String?
+
     @Flag(
         name: .shortAndLong,
         help: "Enable debug-level logging.")
     var debug = false
-    
+
     @Argument(
         help: "The URL of the RSS feed of magnet links.",
         transform: { URL(string: $0)! })
     var url: URL
-    
+
     private var historyFileURL: URL {
         .init(filePath: ".rss-client-history", directoryHint: .notDirectory, relativeTo: .currentDirectory())
     }
-    
+
     mutating func run() async throws {
         try await withErrorHandling {
-            let debug = self.debug
+            let debug = debug
             Task { @MainActor in logger.logLevel = debug ? .debug : .notice }
-            
+
             let rssClient = try await RSS.Client(feedURL: url, historyFileURL: historyFileURL)
             let onePWClient: OnePassword.Client? = itemID != nil ? .init(itemID: itemID!) : nil
             let synologyClient = try await getSynologyClient(onePWClient: onePWClient)
-            
+
             let urls = try await rssClient.undownloadedLinks(rssClient.links())
             for await (url, debridedURL) in try debridURLs(urls) {
                 try await synologyClient.createTask(url: debridedURL)
                 try await rssClient.markAsDownloaded(link: url)
                 await logDownloadTask(url: url, debridedURL: debridedURL)
             }
-            
+
             try await synologyClient.logout()
         }
     }
-    
+
     @MainActor
     private func logDownloadTask(url: URL, debridedURL: URL) {
         if let name = RSS.displayName(forMagnetURL: url) {
