@@ -127,9 +127,40 @@ enum RSS {
             Anchor.endOfLine
         }
 
+        private var currentElement: String = ""
+        private var currentValue: String = ""
+        private var insideItem: Bool = false
+
         func parser(_: XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes attributeDict: [String: String] = [:]) {
-            guard elementName == "enclosure" else { return }
-            guard let urlString = attributeDict["url"] else { return }
+            currentElement = elementName
+            currentValue = ""
+            
+            if elementName == "item" {
+                insideItem = true
+            }
+            
+            if elementName == "enclosure" {
+                if let urlString = attributeDict["url"] {
+                    processMagnetURL(urlString)
+                }
+            }
+        }
+
+        func parser(_: XMLParser, foundCharacters string: String) {
+            currentValue += string
+        }
+
+        func parser(_: XMLParser, didEndElement elementName: String, namespaceURI _: String?, qualifiedName _: String?) {
+            if elementName == "item" {
+                insideItem = false
+            }
+            
+            if elementName == "link" && insideItem {
+                processMagnetURL(currentValue.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+        }
+
+        private func processMagnetURL(_ urlString: String) {
             guard (try? magnetURLRegex.firstMatch(in: urlString)) != nil else {
                 Task { @MainActor in
                     logger.info("Not a magnet URL", metadata: [
