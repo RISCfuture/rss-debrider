@@ -3,7 +3,7 @@
 RSS-Debrider is a macOS executable that 1) downloads a list of magnet links from
 an RSS feed (such as the one provided by [ShowRSS](http://showrss.info/)), 2)
 submits the links to Real-Debrid for remote download, and 3) pushes the debrided
-to a Synology NAS for download to your NAS storage. RSS-Debrider is written in
+links to a Synology NAS for download to your NAS storage. RSS-Debrider is written in
 Swift and intended to be run as a cron job using a launch agent.
 
 ## Usage
@@ -25,7 +25,8 @@ OPTIONS:
                           The password of the Synology NAS.
   -i, --1pw-id <1pw-id>   The ID of the 1Password item containing the information for the Synology account.
   -d, --debug             Enable debug-level logging.
-  -h, --help              Show help information.```
+  -h, --help              Show help information.
+```
 
 ## Prerequisites
 
@@ -135,7 +136,7 @@ swift package generate-documentation --target rss-debrider
 ```
 
 to generate a docarchive at
-`.build/plugins/Swift-DocC/outputs/SwiftMETAR.doccarchive`. You can open this
+`.build/plugins/Swift-DocC/outputs/rss-debrider.doccarchive`. You can open this
 docarchive file in Xcode for browseable API documentation. Or, within Xcode,
-open the SwiftMETAR package in Xcode and choose **Build Documentation** from the
+open the rss-debrider package in Xcode and choose **Build Documentation** from the
 **Product** menu.
