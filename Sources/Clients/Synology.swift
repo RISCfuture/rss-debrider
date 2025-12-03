@@ -11,7 +11,7 @@ enum Synology {
   
    Before using this client, call the ``getAPIs()`` method to download the
    current endpoints for the Synology API. You will also need to call
-   ``login()`` before making any authenticated API requests.
+   ``login(OTP:)`` before making any authenticated API requests.
   
    - SeeAlso: [Synology DownloadStation API](https://global.download.synology.com/download/Document/Software/DeveloperGuide/Package/DownloadStation/All/enu/Synology_Download_Station_Web_API.pdf)
    - SeeAlso: ``SynologyErrors``

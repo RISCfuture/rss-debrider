@@ -1,8 +1,5 @@
 # ``RSS``
 
-@Metadata {
-    @DocumentationExtension(mergeBehavior: append)
-}
 
 ## Topics
 

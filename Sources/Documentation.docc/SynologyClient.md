@@ -1,8 +1,5 @@
 # ``rss_debrider/Synology/Client``
 
-@Metadata {
-    @DocumentationExtension(mergeBehavior: append)
-}
 
 ## Topics
 
@@ -13,7 +10,7 @@
 ### Metadata and Sessions
 
 - ``getAPIs()``
-- ``login()``
+- ``login(OTP:)``
 - ``logout()``
 
 ### API Methods

@@ -1,8 +1,5 @@
 # ``rss_debrider/RealDebrid``
 
-@Metadata {
-    @DocumentationExtension(mergeBehavior: append)
-}
 
 ## Topics
 

@@ -1,8 +1,5 @@
 # ``rss_debrider/Synology``
 
-@Metadata {
-    @DocumentationExtension(mergeBehavior: append)
-}
 
 ## Topics
 

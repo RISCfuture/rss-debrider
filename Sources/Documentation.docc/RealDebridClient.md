@@ -1,8 +1,5 @@
 # ``RealDebrid/Client``
 
-@Metadata {
-    @DocumentationExtension(mergeBehavior: append)
-}
 
 ## Topics
 
