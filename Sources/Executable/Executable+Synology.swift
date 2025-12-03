@@ -1,6 +1,21 @@
 import Foundation
 
 extension Executable {
+
+  /**
+   Creates and authenticates a Synology client.
+  
+   This method retrieves Synology credentials either from command-line
+   arguments, 1Password (if an item ID was provided), or by prompting the
+   user interactively. It then creates the client, downloads API info, and
+   logs in.
+  
+   - Parameter onePWClient: An optional 1Password client to retrieve
+     credentials from. If `nil`, credentials will be taken from command-line
+     arguments or prompted interactively.
+   - Returns: An authenticated Synology client ready for API calls.
+   - Throws: Throws an error if authentication fails.
+   */
   func getSynologyClient(onePWClient: OnePassword.Client? = nil) async throws -> Synology.Client {
     let hostname = prompt(
       String(localized: "Hostname for Synology NAS:", comment: "prompt"),

@@ -1,6 +1,22 @@
 import Foundation
 
 extension Executable {
+
+  /**
+   Processes a list of magnet URLs through Real-Debrid and returns an async
+   stream of the resulting download URLs.
+  
+   For each magnet URL, this method:
+   1. Submits the magnet to Real-Debrid
+   2. Polls for torrent status until files are available
+   3. Selects the largest file in the torrent
+   4. Waits for the download to complete
+   5. Unrestricts the download link
+  
+   - Parameter urls: The magnet URLs to process.
+   - Returns: An async stream of tuples containing the original magnet URL
+     and the resulting debrided download URL.
+   */
   func debridURLs(_ urls: [URL]) throws -> AsyncStream<(original: URL, debrided: URL)> {
     return AsyncStream { continuation in
       let client = RealDebrid.Client(apiKey: apiKey)

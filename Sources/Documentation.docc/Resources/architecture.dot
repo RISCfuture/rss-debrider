@@ -1,0 +1,185 @@
+digraph architecture {
+    // Graph settings
+    rankdir=TB;
+    splines=true;
+    nodesep=0.6;
+    ranksep=0.8;
+    bgcolor="white";
+
+    // Default node style - modern look
+    node [
+        shape=box,
+        style="rounded,filled",
+        fontname="SF Pro Display, Helvetica Neue, Arial",
+        fontsize=12,
+        penwidth=2,
+        margin="0.3,0.15"
+    ];
+
+    // Default edge style
+    edge [
+        fontname="SF Pro Display, Helvetica Neue, Arial",
+        fontsize=10,
+        penwidth=1.5,
+        color="#666666"
+    ];
+
+    // External services (blue tones)
+    subgraph cluster_external {
+        label="External Services";
+        labeljust=l;
+        fontname="SF Pro Display, Helvetica Neue, Arial";
+        fontsize=14;
+        fontcolor="#333333";
+        style="rounded,dashed";
+        color="#cccccc";
+        bgcolor="#f8f9fa";
+
+        rss_feed [
+            label="RSS Feed\n(e.g., ShowRSS)",
+            fillcolor="#e3f2fd",
+            color="#1976d2"
+        ];
+
+        real_debrid [
+            label="Real-Debrid\nAPI",
+            fillcolor="#e3f2fd",
+            color="#1976d2"
+        ];
+    }
+
+    // Local infrastructure (green tones)
+    subgraph cluster_local {
+        label="Local Infrastructure";
+        labeljust=l;
+        fontname="SF Pro Display, Helvetica Neue, Arial";
+        fontsize=14;
+        fontcolor="#333333";
+        style="rounded,dashed";
+        color="#cccccc";
+        bgcolor="#f1f8e9";
+
+        synology [
+            label="Synology NAS\n(Download Station)",
+            fillcolor="#e8f5e9",
+            color="#388e3c"
+        ];
+
+        history_file [
+            label=".rss-client-history\nFile",
+            fillcolor="#e8f5e9",
+            color="#388e3c",
+            shape=note
+        ];
+    }
+
+    // Optional integration (purple tones)
+    subgraph cluster_optional {
+        label="Optional Integration";
+        labeljust=l;
+        fontname="SF Pro Display, Helvetica Neue, Arial";
+        fontsize=14;
+        fontcolor="#333333";
+        style="rounded,dashed";
+        color="#cccccc";
+        bgcolor="#f3e5f5";
+
+        onepassword [
+            label="1Password CLI\n(Credentials)",
+            fillcolor="#ede7f6",
+            color="#7b1fa2"
+        ];
+    }
+
+    // rss-debrider process flow (orange/amber tones)
+    subgraph cluster_process {
+        label="rss-debrider Process";
+        labeljust=l;
+        fontname="SF Pro Display, Helvetica Neue, Arial";
+        fontsize=14;
+        fontcolor="#333333";
+        style="rounded,filled";
+        color="#ff9800";
+        bgcolor="#fff3e0";
+
+        // Main steps
+        parse_rss [
+            label="1. Parse RSS Feed\n(RSS.Client)",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        filter_links [
+            label="2. Filter\nDownloaded Links",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        add_magnet [
+            label="3. Submit Magnet\n(addMagnet)",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        poll_status [
+            label="4. Poll Status\n(torrentInfo)",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        select_file [
+            label="5. Select File\n(selectFiles)",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        wait_download [
+            label="6. Wait for\nDownload",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        unrestrict [
+            label="7. Unrestrict Link\n(unrestrictedLink)",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        create_task [
+            label="8. Create Task\n(Synology.Client)",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+
+        mark_done [
+            label="9. Mark as\nDownloaded",
+            fillcolor="#ffecb3",
+            color="#f57c00"
+        ];
+    }
+
+    // Flow connections
+    rss_feed -> parse_rss [label="HTTP GET"];
+    parse_rss -> filter_links [label="magnet URLs"];
+    history_file -> filter_links [label="check", style=dashed];
+    filter_links -> add_magnet [label="new URLs"];
+
+    add_magnet -> real_debrid [label="POST"];
+    real_debrid -> poll_status [label="torrent ID"];
+    poll_status -> real_debrid [label="GET", style=dashed];
+
+    poll_status -> select_file [label="awaiting\nselection"];
+    select_file -> real_debrid [label="POST"];
+    select_file -> wait_download;
+
+    wait_download -> poll_status [label="poll", style=dashed];
+    poll_status -> unrestrict [label="downloaded"];
+    unrestrict -> real_debrid [label="POST"];
+
+    real_debrid -> create_task [label="direct URL"];
+    onepassword -> create_task [label="credentials", style=dashed];
+    create_task -> synology [label="HTTP API"];
+
+    create_task -> mark_done;
+    mark_done -> history_file [label="append"];
+}

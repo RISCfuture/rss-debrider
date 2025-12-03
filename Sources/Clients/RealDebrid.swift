@@ -212,7 +212,11 @@ enum RealDebrid {
      information on the field values.
      */
     struct AddMagnet: Decodable {
+
+      /// The unique identifier assigned to this torrent by Real-Debrid.
       var id: String
+
+      /// The URI to the torrent info endpoint for this torrent.
       var uri: String
     }
 
@@ -222,21 +226,55 @@ enum RealDebrid {
      information on the field values.
      */
     struct TorrentInfo: Decodable {
+
+      /// The unique identifier assigned to this torrent by Real-Debrid.
       var id: String
+
+      /// The filename of the torrent (may be renamed by Real-Debrid).
       var filename: String
+
+      /// The original filename from the torrent metadata.
       var originalFilename: String
+
+      /// The info hash of the torrent.
       var hash: String
+
+      /// The size of the selected files in bytes.
       var bytes: UInt
+
+      /// The total size of all files in the torrent in bytes.
       var originalBytes: UInt
+
+      /// The host where the torrent files are stored.
       var host: String
+
+      /// The number of split files (for large files).
       var split: UInt
-      var progress: UInt8  // 0 to 100
+
+      /// The download progress as a percentage (0 to 100).
+      var progress: UInt8
+
+      /// The current status of the torrent.
       var status: Status
+
+      /// The date and time when the torrent was added.
       var added: Date
+
+      /// The files contained within the torrent.
       var files: [File]
+
+      /// The restricted download links for selected files. These must be
+      /// passed to ``RealDebrid/Client/unrestrictedLink(url:)`` to get
+      /// downloadable URLs.
       var links: [URL]
+
+      /// The date and time when the torrent finished downloading, if completed.
       var ended: Date?
+
+      /// The current download speed in bytes per second, if downloading.
       var speed: UInt?
+
+      /// The number of seeders for this torrent, if available.
       var seeders: UInt?
 
       private enum CodingKeys: CodingKey {
@@ -264,10 +302,39 @@ enum RealDebrid {
        information on the enum values.
        */
       enum Status: String, Decodable {
+
+        /// Failed to convert magnet link to torrent metadata.
         case magnetError = "magnet_error"
+
+        /// Currently converting magnet link to torrent metadata.
         case magnetConversion = "magnet_conversion"
+
+        /// Waiting for file selection before downloading.
         case awaitingFileSelection = "waiting_files_selection"
-        case queued, downloading, downloaded, error, virus, compressing, uploading, dead
+
+        /// Queued for download.
+        case queued
+
+        /// Currently downloading.
+        case downloading
+
+        /// Download completed successfully.
+        case downloaded
+
+        /// An error occurred during download.
+        case error
+
+        /// Torrent contains a virus.
+        case virus
+
+        /// Currently compressing files.
+        case compressing
+
+        /// Currently uploading to Real-Debrid servers.
+        case uploading
+
+        /// Torrent is dead (no seeders available).
+        case dead
       }
 
       /**
@@ -276,9 +343,17 @@ enum RealDebrid {
        information on the field values.
        */
       struct File: Decodable {
+
+        /// The sequential identifier of this file within the torrent.
         var id: UInt
+
+        /// The path of this file within the torrent.
         var path: String
+
+        /// The size of this file in bytes.
         var bytes: UInt
+
+        /// Whether this file has been selected for download.
         var selected: Bool
 
         init(from decoder: Decoder) throws {
@@ -306,16 +381,38 @@ enum RealDebrid {
      information on the field values.
      */
     struct UnrestrictedLink: Decodable {
+
+      /// The unique identifier for this unrestricted link.
       var id: String
+
+      /// The filename of the file.
       var filename: String
+
+      /// The MIME type of the file.
       var mimeType: String
+
+      /// The size of the file in bytes.
       var fileSize: UInt
+
+      /// The original restricted URL that was unrestricted.
       var originalURL: URL
+
+      /// The host where the file is stored.
       var host: String
+
+      /// The URL to the host's favicon, if available.
       var hostIcon: URL?
+
+      /// The number of chunks the file is split into.
       var chunks: UInt
+
+      /// Whether CRC checking is available for this file.
       var crc: Bool
+
+      /// The unrestricted URL that can be used to download the file directly.
       var unrestrictedURL: URL
+
+      /// Whether this file can be streamed.
       var streamable: Bool
 
       init(from decoder: Decoder) throws {

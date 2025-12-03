@@ -1,6 +1,15 @@
 import ArgumentParser
 import Foundation
 
+/**
+ The main entry point for the rss-debrider command-line tool.
+
+ This command downloads magnet links from an RSS feed, submits them to
+ Real-Debrid for remote downloading, and then sends the resulting download
+ URLs to a Synology NAS for local download.
+
+ - SeeAlso: <doc:Usage>
+ */
 @main
 struct Executable: AsyncParsableCommand {
   @Option(

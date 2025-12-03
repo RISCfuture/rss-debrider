@@ -283,8 +283,14 @@ enum Synology {
    documentation for information about the fields.
    */
   struct Login: Decodable {
+
+    /// The session ID token for authenticated requests.
     var sessionID: String
+
+    /// The device ID assigned by the Synology NAS.
     var deviceID: String
+
+    /// Whether the connection is through the Synology portal port.
     var isPortalPort: Bool
 
     private enum CodingKeys: String, CodingKey {
@@ -299,12 +305,23 @@ enum Synology {
    documentation for information about the fields.
    */
   struct API: Decodable {
+
+    /// The minimum API version supported by this endpoint.
     var minVersion: UInt
+
+    /// The maximum API version supported by this endpoint.
     var maxVersion: UInt
+
+    /// The path to this API endpoint (relative to `/webapi/`).
     var path: String
+
+    /// The request format for this API, if specified.
     var requestFormat: RequestFormat?
 
+    /// The format used for API requests.
     enum RequestFormat: String, Decodable {
+
+      /// JSON request format.
       case JSON
     }
   }

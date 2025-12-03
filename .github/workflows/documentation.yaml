@@ -34,6 +34,9 @@ jobs:
            --disable-indexing \
            --transform-for-static-hosting \
            --hosting-base-path rss-debrider
+      - name: Create redirect
+        run: |
+          echo '<meta http-equiv="refresh" content="0; url=documentation/rss_debrider/">' > ./docs/index.html
       - name: Upload
         uses: actions/upload-pages-artifact@v3
         with:

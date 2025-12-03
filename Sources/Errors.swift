@@ -159,7 +159,7 @@ extension RealDebridErrors: LocalizedError {
           comment: "failure reason"
         )
 
-      case .badResponseStatus(let response, let body):
+      case let .badResponseStatus(response, body):
         switch response.statusCode {
           case 401:
             return String(localized: "Bad Real-Debrid API key.", comment: "failure reason")
@@ -172,7 +172,7 @@ extension RealDebridErrors: LocalizedError {
             return realDebridError(body: body) ?? defaultRealDebridError(response: response)
         }
 
-      case .torrentDownloadFailed(let id, let status):
+      case let .torrentDownloadFailed(id, status):
         return switch status {
           case .dead:
             String(
@@ -408,7 +408,7 @@ extension SynologyErrors: LocalizedError {
           localized: "Synology API “\(api)” was not found in API info.",
           comment: "failure reason"
         )
-      case .unsupportedVersion(let api, let version):
+      case let .unsupportedVersion(api, version):
         return String(
           localized: "Version \(version) is not supported for Synology API “\(api)”.",
           comment: "failure reason"
