@@ -3,23 +3,54 @@
 ## Command Line Options
 
 ```
-USAGE: rss-debrider --api-key <api-key> [--hostname <hostname>] [--port <port>] [--username <username>] [--password <password>] [--debug] <url>
+USAGE: rss-debrider [--api-key <api-key>] [--hostname <hostname>] [--port <port>] [--username <username>] [--password <password>] [--1pw-id <1pw-id>] [--history-file <history-file>] [--debug] <url>
 
 ARGUMENTS:
   <url>                   The URL of the RSS feed of magnet links.
 
 OPTIONS:
-  -k, --api-key <api-key> The API key for Real-Debrid.
+  -k, --api-key <api-key> The API key for Real-Debrid. Can also be set via
+                          RSS_DEBRIDER_API_KEY.
   -h, --hostname <hostname>
-                          The hostname of the Synology NAS.
-  -p, --port <port>       The port of the Synology NAS. (default: 5000)
+                          The hostname of the Synology NAS. Can also be set via
+                          RSS_DEBRIDER_SYNOLOGY_HOSTNAME.
+  -p, --port <port>       The port of the Synology NAS. Can also be set via
+                          RSS_DEBRIDER_SYNOLOGY_PORT.
   -u, --username <username>
-                          The username of the Synology NAS.
+                          The username of the Synology NAS. Can also be set via
+                          RSS_DEBRIDER_SYNOLOGY_USERNAME.
   -P, --password <password>
-                          The password of the Synology NAS.
-  -d, --debug             Enable debug-level logging.
+                          The password of the Synology NAS. Can also be set via
+                          RSS_DEBRIDER_SYNOLOGY_PASSWORD.
+  -i, --1pw-id <1pw-id>   The ID of the 1Password item containing the information
+                          for the Synology account. Can also be set via
+                          RSS_DEBRIDER_1PW_ID.
+  --history-file <history-file>
+                          The path to the history file. Can also be set via
+                          RSS_DEBRIDER_HISTORY_FILE.
+  -d, --debug             Enable debug-level logging. Can also be set via
+                          RSS_DEBRIDER_DEBUG.
   -h, --help              Show help information.
 ```
+
+## Environment Variables
+
+All configuration options can also be set via environment variables. This is
+useful for CI/CD pipelines, containerized deployments, or when you prefer not
+to pass sensitive values as command-line arguments.
+
+| Setting | Environment Variable |
+|---------|---------------------|
+| API key | `RSS_DEBRIDER_API_KEY` |
+| Synology hostname | `RSS_DEBRIDER_SYNOLOGY_HOSTNAME` |
+| Synology port | `RSS_DEBRIDER_SYNOLOGY_PORT` |
+| Synology username | `RSS_DEBRIDER_SYNOLOGY_USERNAME` |
+| Synology password | `RSS_DEBRIDER_SYNOLOGY_PASSWORD` |
+| 1Password item ID | `RSS_DEBRIDER_1PW_ID` |
+| History file path | `RSS_DEBRIDER_HISTORY_FILE` |
+| Debug logging | `RSS_DEBRIDER_DEBUG` |
+
+Command-line arguments take precedence over environment variables.
 
 ## Prerequisites
 
@@ -28,10 +59,10 @@ To use RSS-Debrider, you must have the following:
 * A hosted RSS feed of magnet links you wish to download, such as from ShowRSS.
 * A paid, premium Real-Debrid account in good standing.
 * A Real-Debrid API key, which you can retrieve from https://real-debrid.com/apitoken
-* A Synology NAS running DSM 6.2 or later, with Download Station installed.
+* A Synology NAS running DSM 7 or later, with Download Station installed.
 * The username and password to a Synology user on that NAS, with permissions to
   submit files to Download Station via the API.
-* A computer running macOS 14 or later that can periodically run the
+* A computer running macOS 15 or later that can periodically run the
   `rss-debrider` binary.
 * If your macOS machine is on a different network than your Synology NAS, you
   will need to configure your router and firewall settings so that you can

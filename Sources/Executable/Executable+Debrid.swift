@@ -13,11 +13,15 @@ extension Executable {
    4. Waits for the download to complete
    5. Unrestricts the download link
   
-   - Parameter urls: The magnet URLs to process.
+   - Parameters:
+     - urls: The magnet URLs to process.
+     - apiKey: The Real-Debrid API key.
    - Returns: An async stream of tuples containing the original magnet URL
      and the resulting debrided download URL.
    */
-  func debridURLs(_ urls: [URL]) throws -> AsyncStream<(original: URL, debrided: URL)> {
+  func debridURLs(_ urls: [URL], apiKey: String) throws -> AsyncStream<
+    (original: URL, debrided: URL)
+  > {
     return AsyncStream { continuation in
       let client = RealDebrid.Client(apiKey: apiKey)
       Task {

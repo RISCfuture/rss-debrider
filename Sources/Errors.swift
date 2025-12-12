@@ -1,5 +1,16 @@
 import Foundation
 
+/// Errors related to configuration.
+enum ConfigurationError: Swift.Error {
+
+  /**
+   Thrown when a required configuration value is missing.
+  
+   - Parameter name: The name of the missing configuration value.
+   */
+  case missingRequired(_ name: String)
+}
+
 /// Errors that can be thrown generally.
 enum Errors: Swift.Error {
 
@@ -98,6 +109,36 @@ enum SynologyErrors: Swift.Error {
    - Parameter version: The version that was given.
    */
   case unsupportedVersion(api: String, version: UInt)
+}
+
+extension ConfigurationError: LocalizedError {
+  var errorDescription: String? {
+    switch self {
+      case .missingRequired:
+        return String(localized: "Missing required configuration", comment: "error description")
+    }
+  }
+
+  var failureReason: String? {
+    switch self {
+      case .missingRequired(let name):
+        return String(
+          localized: "The required configuration value “\(name)” was not provided.",
+          comment: "failure reason"
+        )
+    }
+  }
+
+  var recoverySuggestion: String? {
+    switch self {
+      case .missingRequired(let name):
+        return String(
+          localized:
+            "Provide “\(name)” via the command-line option or the corresponding environment variable.",
+          comment: "recovery suggestion"
+        )
+    }
+  }
 }
 
 extension Errors: LocalizedError {
