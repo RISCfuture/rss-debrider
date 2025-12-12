@@ -41,8 +41,8 @@ enum RSSErrors: Swift.Error {
   case badResponseStatus(_ response: HTTPURLResponse, body: Data)
 }
 
-/// Errors thrown by ``RealDebrid/Client``.
-enum RealDebridErrors: Swift.Error {
+/// API communication errors thrown by ``RealDebrid/Client``.
+enum RealDebridAPIError: Swift.Error {
 
   /**
    Thrown when a non-HTTP response is received.
@@ -58,6 +58,10 @@ enum RealDebridErrors: Swift.Error {
    - Parameter body: The body of the response.
    */
   case badResponseStatus(_ response: HTTPURLResponse, body: Data)
+}
+
+/// Errors thrown when Real-Debrid cannot download a torrent.
+enum RealDebridTorrentError: Swift.Error {
 
   /**
    Thrown when `/torrents/info/{id}` returns a failed status.
@@ -65,36 +69,22 @@ enum RealDebridErrors: Swift.Error {
    - Parameter id: The Real-Debrid ID of the torrent.
    - Parameter status: The status returned by the API.
    */
-  case torrentDownloadFailed(id: String, status: RealDebrid.Response.TorrentInfo.Status)
+  case downloadFailed(id: String, status: RealDebrid.Response.TorrentInfo.Status)
 }
 
-/// Errors thrown by ``Synology/Client``.
+/// Client configuration errors thrown by ``Synology/Client``.
 enum SynologyErrors: Swift.Error {
-
-  /**
-   Thrown when a non-HTTP response is received.
-  
-   - Parameter response: The response that was received.
-   */
-  case badRepsonse(_ response: URLResponse)
 
   /// Thrown when an authenticated API request is made without an active
   /// session.
   case noSession
-
-  /**
-   Thrown when the Synology API returns an error response.
-  
-   - Parameter error: The error code returned by the API.
-   */
-  case APIError(error: Synology.Error)
 
   /// Thrown when an API request is made before ``Synology/Client/getAPIs()``
   /// is called.
   case APIInfoNotDownloaded
 
   /**
-   Thrown when an API name is provided that was given by
+   Thrown when an API name is provided that was not returned by
    ``Synology/Client/getAPIs()``.
   
    - Parameter api: The name of the API that was requested.
@@ -113,19 +103,13 @@ enum SynologyErrors: Swift.Error {
 
 extension ConfigurationError: LocalizedError {
   var errorDescription: String? {
-    switch self {
-      case .missingRequired:
-        return String(localized: "Missing required configuration", comment: "error description")
-    }
+    String(localized: "Couldn’t load configuration.")
   }
 
   var failureReason: String? {
     switch self {
       case .missingRequired(let name):
-        return String(
-          localized: "The required configuration value “\(name)” was not provided.",
-          comment: "failure reason"
-        )
+        return String(localized: "The required value “\(name)” was not provided.")
     }
   }
 
@@ -133,9 +117,7 @@ extension ConfigurationError: LocalizedError {
     switch self {
       case .missingRequired(let name):
         return String(
-          localized:
-            "Provide “\(name)” via the command-line option or the corresponding environment variable.",
-          comment: "recovery suggestion"
+          localized: "Provide “\(name)” via a command-line option or environment variable."
         )
     }
   }
@@ -143,98 +125,87 @@ extension ConfigurationError: LocalizedError {
 
 extension Errors: LocalizedError {
   var errorDescription: String? {
-    switch self {
-      case .badURL:
-        return String(localized: "Improperly formatted URL", comment: "error description")
-    }
+    String(localized: "Couldn’t parse URL.")
   }
 
   var failureReason: String? {
     switch self {
       case .badURL(let url):
-        return String(
-          localized: "The URL “\(url)” could not be parsed as a URL.",
-          comment: "failure reason"
-        )
+        return String(localized: "“\(url)” is not a valid URL.")
     }
   }
 
   var recoverySuggestion: String? {
-    switch self {
-      case .badURL:
-        return String(
-          localized: "Verify that the RSS feed is returning correct magnetic URLs.",
-          comment: "recovery suggestion"
-        )
-    }
+    nil
   }
 }
 
-extension RealDebridErrors: LocalizedError {
+extension RealDebridAPIError: LocalizedError {
   var errorDescription: String? {
-    switch self {
-      case .badRepsonse:
-        return String(
-          localized: "Unexpected response from Real-Debrid API",
-          comment: "error description"
-        )
-      case .badResponseStatus:
-        return String(
-          localized: "Non-success response from Real-Debrid API",
-          comment: "error description"
-        )
-      case .torrentDownloadFailed:
-        return String(
-          localized: "Real-Debrid couldn’t download torrent.",
-          comment: "error description"
-        )
-    }
+    String(localized: "Couldn’t connect to Real-Debrid.")
   }
 
   var failureReason: String? {
     switch self {
       case .badRepsonse(let response):
-        let url = response.url?.absoluteString ?? String(localized: "<unknown URL>")
-        return String(
-          localized: "The response from “\(url)” was not an HTTP response.",
-          comment: "failure reason"
-        )
+        let url = response.url?.absoluteString ?? "unknown"
+        return String(localized: "The response from \(url) was not an HTTP response.")
 
       case let .badResponseStatus(response, body):
+        if let errorMessage = realDebridError(body: body) {
+          return errorMessage
+        }
         switch response.statusCode {
           case 401:
-            return String(localized: "Bad Real-Debrid API key.", comment: "failure reason")
+            return String(localized: "Invalid API key.")
           case 403:
-            return String(
-              localized: "Real-Debrid account is not authorized.",
-              comment: "failure reason"
-            )
+            return String(localized: "Account is not authorized.")
           default:
-            return realDebridError(body: body) ?? defaultRealDebridError(response: response)
+            return String(localized: "The server returned HTTP status \(response.statusCode).")
         }
+    }
+  }
 
-      case let .torrentDownloadFailed(id, status):
+  var recoverySuggestion: String? {
+    switch self {
+      case .badRepsonse:
+        return nil
+
+      case .badResponseStatus(let response, _):
+        switch response.statusCode {
+          case 401:
+            return String(localized: "Check the Real-Debrid API key passed to the -r option.")
+          case 403:
+            return String(localized: "Verify your Real-Debrid subscription is active.")
+          default:
+            return nil
+        }
+    }
+  }
+
+  private func realDebridError(body: Data) -> String? {
+    guard let body = try? JSONDecoder().decode(RealDebridError.self, from: body) else { return nil }
+    return String(localized: "API error \(body.errorCode): \(body.error) — \(body.errorDetails)")
+  }
+}
+
+extension RealDebridTorrentError: LocalizedError {
+  var errorDescription: String? {
+    String(localized: "Real-Debrid couldn’t download torrent.")
+  }
+
+  var failureReason: String? {
+    switch self {
+      case let .downloadFailed(id, status):
         return switch status {
           case .dead:
-            String(
-              localized: "Couldn’t download torrent “\(id)”: Torrent is dead.",
-              comment: "failure reason"
-            )
+            String(localized: "Torrent \(id) has no available seeders.")
           case .error:
-            String(
-              localized: "Couldn’t download torrent “\(id)”: An unknown error occurred.",
-              comment: "failure reason"
-            )
+            String(localized: "Torrent \(id) encountered an unknown error.")
           case .magnetError:
-            String(
-              localized: "Couldn’t download torrent “\(id)”: Failed to get magnet data.",
-              comment: "failure reason"
-            )
+            String(localized: "Torrent \(id) has invalid magnet data.")
           case .virus:
-            String(
-              localized: "Couldn’t download torrent “\(id)”: Torrent contains a virus.",
-              comment: "failure reason"
-            )
+            String(localized: "Torrent \(id) contains a virus.")
           default:
             preconditionFailure("Not an error status")
         }
@@ -243,273 +214,57 @@ extension RealDebridErrors: LocalizedError {
 
   var recoverySuggestion: String? {
     switch self {
-      case .badRepsonse:
-        return String(
-          localized: "Verify that the server is accessible from your computer.",
-          comment: "recovery suggestion"
-        )
-
-      case .badResponseStatus(let response, _):
-        switch response.statusCode {
-          case 401:
-            return String(
-              localized: "Double-check the value passed to the -r option.",
-              comment: "recovery suggestion"
-            )
-          case 403:
-            return String(
-              localized:
-                "Make sure you are a premium Real-Debrid subscriber, and your account is in good standing.",
-              comment: "recovery suggestion"
-            )
-          default:
-            return String(
-              localized: "Consult the Real-Debrid API documentation for more information.",
-              comment: "recovery suggestion"
-            )
-        }
-
-      case .torrentDownloadFailed(_, let status):
+      case let .downloadFailed(_, status):
         switch status {
           case .dead:
-            return String(
-              localized: "Try the download again later.",
-              comment: "recovery suggestion"
-            )
+            return String(localized: "Try again later when seeders may be available.")
           default:
-            return String(
-              localized: "Try a different torrent or magnet URL.",
-              comment: "recovery suggestion"
-            )
+            return nil
         }
     }
-  }
-
-  private func realDebridError(body: Data) -> String? {
-    guard let body = try? JSONDecoder().decode(RealDebridError.self, from: body) else { return nil }
-    return String(
-      localized:
-        "Real-Debrid API returned error \(body.errorCode) (\(body.error)): \(body.errorDetails)",
-      comment: "failure reason"
-    )
-  }
-
-  private func defaultRealDebridError(response: HTTPURLResponse) -> String {
-    let url = response.url?.absoluteString ?? String(localized: "<unknown URL>")
-    return String(
-      localized: "The response from “\(url)” had status code \(response.statusCode).",
-      comment: "failure reason"
-    )
   }
 }
 
 extension RSSErrors: LocalizedError {
   var errorDescription: String? {
-    switch self {
-      case .badRepsonse:
-        return String(
-          localized: "Unexpected response from RSS provider",
-          comment: "error description"
-        )
-      case .badResponseStatus:
-        return String(
-          localized: "Non-success response from RSS provider",
-          comment: "error description"
-        )
-    }
+    String(localized: "Couldn’t fetch RSS feed.")
   }
 
   var failureReason: String? {
     switch self {
       case .badRepsonse(let response):
-        let url = response.url?.absoluteString ?? String(localized: "<unknown URL>")
-        return String(
-          localized: "The response from “\(url)” was not an HTTP response.",
-          comment: "failure reason"
-        )
+        let url = response.url?.absoluteString ?? "unknown"
+        return String(localized: "The response from \(url) was not an HTTP response.")
       case .badResponseStatus(let response, _):
-        let url = response.url?.absoluteString ?? String(localized: "<unknown URL>")
-        return String(
-          localized: "The response from “\(url)” had status code \(response.statusCode).",
-          comment: "failure reason"
-        )
+        return String(localized: "The server returned HTTP status \(response.statusCode).")
     }
   }
 
   var recoverySuggestion: String? {
-    switch self {
-      case .badRepsonse:
-        return String(
-          localized: "Verify that the server is accessible from your computer.",
-          comment: "recovery suggestion"
-        )
-      case .badResponseStatus:
-        return String(
-          localized: "Verify the RSS URL passed to rss-debrider.",
-          comment: "recovery suggestion"
-        )
-    }
+    String(localized: "Verify the RSS feed URL is correct and the server is accessible.")
   }
 }
 
 extension SynologyErrors: LocalizedError {
   var errorDescription: String? {
-    switch self {
-      case .APIError:
-        return String(localized: "The Synology API returned an error", comment: "error description")
-      case .badRepsonse:
-        return String(
-          localized: "Unexpected response from Synology API",
-          comment: "error description"
-        )
-      case .noSession:
-        return String(
-          localized: "Must be logged in to use that Synology API method",
-          comment: "error description"
-        )
-      case .APIInfoNotDownloaded:
-        return String(
-          localized: "API info not yet downloaded from Synology",
-          comment: "error description"
-        )
-      case .unknownAPI:
-        return String(localized: "Unknown Synology API", comment: "error description")
-      case .unsupportedVersion:
-        return String(
-          localized: "Given Synology API version is unsupported",
-          comment: "error description"
-        )
-    }
+    String(localized: "Synology client not configured correctly.")
   }
 
   var failureReason: String? {
     switch self {
-      case .APIError(let code):
-        switch code {
-          case .invalidParameter:
-            return String(
-              localized: "An invalid parameter was provided to the Synology API.",
-              comment: "failure reason"
-            )
-          case .noSuchAPI:
-            return String(
-              localized: "An invalid API name was provided to the Synology API.",
-              comment: "failure reason"
-            )
-          case .noSuchMethod:
-            return String(
-              localized: "An invalid method name was provided to the Synology API.",
-              comment: "failure reason"
-            )
-          case .notSupportedInVersion:
-            return String(
-              localized: "Synology API is not supported in the provided version.",
-              comment: "failure reason"
-            )
-          case .sessionInterrupted:
-            return String(
-              localized: "The current Synology session was interrupted by another login.",
-              comment: "failure reason"
-            )
-          case .sessionTimeout:
-            return String(
-              localized: "The Synology session has timed out.",
-              comment: "failure reason"
-            )
-          case .unauthorized:
-            return String(
-              localized: "Action is not authorized for the Synology user.",
-              comment: "failure reason"
-            )
-          case .unknown:
-            return String(
-              localized: "An unknown Synology API error occurred.",
-              comment: "failure reason"
-            )
-        }
-      case .badRepsonse(let response):
-        let url = response.url?.absoluteString ?? String(localized: "<unknown URL>")
-        return String(
-          localized: "The response from “\(url)” was not an HTTP response.",
-          comment: "failure reason"
-        )
-
       case .noSession:
-        return String(
-          localized: "That Synology API requires a logged-in session.",
-          comment: "failure reason"
-        )
+        return String(localized: "No active session. Call login() before making API requests.")
       case .APIInfoNotDownloaded:
-        return String(
-          localized: "Synology API method called before API info was downloaded.",
-          comment: "failure reason"
-        )
+        return String(localized: "Call getAPIs() before making API requests.")
       case .unknownAPI(let api):
-        return String(
-          localized: "Synology API “\(api)” was not found in API info.",
-          comment: "failure reason"
-        )
+        return String(localized: "API “\(api)” was not found in the API info response.")
       case let .unsupportedVersion(api, version):
-        return String(
-          localized: "Version \(version) is not supported for Synology API “\(api)”.",
-          comment: "failure reason"
-        )
+        return String(localized: "Version \(version) is not supported for API “\(api)\".")
     }
   }
 
   var recoverySuggestion: String? {
-    switch self {
-      case .APIError(let code):
-        switch code {
-          case .invalidParameter, .noSuchAPI, .noSuchMethod, .notSupportedInVersion:
-            return String(
-              localized: "Validate the data you are passing to the Synology API.",
-              comment: "recovery suggestion"
-            )
-          case .sessionInterrupted, .sessionTimeout:
-            return String(
-              localized:
-                "Retrieve a new session by making another login request to the Synology API.",
-              comment: "recovery suggestion"
-            )
-          case .unknown:
-            return String(
-              localized: "Consult the Synology API documentation for more information.",
-              comment: "recovery suggestion"
-            )
-          case .unauthorized:
-            return String(
-              localized: "Verify the permissions granted to the Synology user.",
-              comment: "recovery suggestion"
-            )
-        }
-
-      case .badRepsonse:
-        return String(
-          localized: "Verify that the Synology API hostname and path is correct.",
-          comment: "recovery suggestion"
-        )
-      case .noSession:
-        return String(
-          localized: "Make a login request before using that API method.",
-          comment: "recovery suggestion"
-        )
-      case .APIInfoNotDownloaded:
-        return String(
-          localized: "Call getAPIs() before making API calls using the Synology client.",
-          comment: "recovery suggestion"
-        )
-      case .unknownAPI:
-        return String(
-          localized: "Check the output of getAPIs() to verify you are using the correct API name.",
-          comment: "recovery suggestion"
-        )
-      case .unsupportedVersion:
-        return String(
-          localized: "Try using a newer or older API version.",
-          comment: "recovery suggestion"
-        )
-    }
+    nil
   }
 }
 

@@ -16,4 +16,5 @@
 
 ### Errors
 
-- ``RealDebridErrors``
+- ``RealDebridAPIError``
+- ``RealDebridTorrentError``

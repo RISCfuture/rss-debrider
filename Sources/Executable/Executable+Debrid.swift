@@ -74,7 +74,7 @@ extension Executable {
           try await Task.sleep(for: .seconds(1))
 
         case .magnetError, .virus, .error, .dead:
-          throw RealDebridErrors.torrentDownloadFailed(id: torrentID, status: torrentInfo.status)
+          throw RealDebridTorrentError.downloadFailed(id: torrentID, status: torrentInfo.status)
 
         case .awaitingFileSelection:
           let `continue` = try await selectLargestFile(

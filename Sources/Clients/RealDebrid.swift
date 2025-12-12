@@ -23,7 +23,8 @@ enum RealDebrid {
   
    - SeeAlso: [Real-Debrid API documentation](https://api.real-debrid.com/)
    - SeeAlso: ``Response``
-   - SeeAlso: ``RealDebridErrors``
+   - SeeAlso: ``RealDebridAPIError``
+   - SeeAlso: ``RealDebridTorrentError``
    */
   actor Client {
     private typealias Parameters = [String: String]
@@ -48,7 +49,7 @@ enum RealDebrid {
      - Parameter url: The magnet link to submit.
      - Returns: The ID of the torrent that was added. Use this ID with the
        ``torrentInfo(id:)`` method to get the file list.
-     - Throws: Throws a ``RealDebridErrors`` error if the request fails.
+     - Throws: Throws a ``RealDebridAPIError`` if the request fails.
      */
     func addMagnet(_ url: URL) async throws -> String {
       let request = try makeRequest(
@@ -73,7 +74,7 @@ enum RealDebrid {
     
      - Parameter id: The Real-Debrid ID for the torrent.
      - Returns: Information about the torrent.
-     - Throws: Throws a ``RealDebridErrors`` error if the request fails.
+     - Throws: Throws a ``RealDebridAPIError`` if the request fails.
      */
     func torrentInfo(id: String) async throws -> Response.TorrentInfo {
       let request = try makeRequest(method: "GET", path: "/torrents/info/\(id)")
@@ -133,7 +134,7 @@ enum RealDebrid {
      - Parameter url: A restricted download URL from
        ``RealDebrid/Response/TorrentInfo/links``.
      - Returns: An unrestricted download URL.
-     - Throws: Throws a ``RealDebridErrors`` error if the request fails.
+     - Throws: Throws a ``RealDebridAPIError`` if the request fails.
      */
     func unrestrictedLink(url: URL) async throws -> URL {
       let request = try makeRequest(
@@ -182,7 +183,7 @@ enum RealDebrid {
     private func executeRequest(_ request: URLRequest) async throws -> Data {
       let (data, response) = try await URLSession.shared.data(for: request)
       guard let response = response as? HTTPURLResponse else {
-        throw RealDebridErrors.badRepsonse(response)
+        throw RealDebridAPIError.badRepsonse(response)
       }
 
       await logger.debug(
@@ -194,7 +195,7 @@ enum RealDebrid {
       )
 
       guard response.statusCode / 100 == 2 else {
-        throw RealDebridErrors.badResponseStatus(response, body: data)
+        throw RealDebridAPIError.badResponseStatus(response, body: data)
       }
 
       return data

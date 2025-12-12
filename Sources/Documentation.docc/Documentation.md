@@ -27,5 +27,6 @@ NAS for download to your NAS storage.
 
 - ``Errors``
 - ``RSSErrors``
-- ``RealDebridErrors``
+- ``RealDebridAPIError``
+- ``RealDebridTorrentError``
 - ``SynologyErrors``

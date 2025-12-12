@@ -71,8 +71,9 @@ Each client has dedicated error types with localized descriptions and
 recovery suggestions:
 
 - ``RSSErrors`` - RSS feed parsing and download errors
-- ``RealDebridErrors`` - Real-Debrid API errors
-- ``SynologyErrors`` - Synology API and authentication errors
+- ``RealDebridAPIError`` - Real-Debrid API communication errors
+- ``RealDebridTorrentError`` - Real-Debrid torrent download errors
+- ``SynologyErrors`` - Synology client configuration errors
 - ``Errors`` - General errors
 
 Errors are logged with context and metadata, and the tool continues
