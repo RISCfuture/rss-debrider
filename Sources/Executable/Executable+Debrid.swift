@@ -2,6 +2,10 @@ import Foundation
 
 extension Executable {
 
+  /// Maximum number of magnet URLs to process concurrently to avoid
+  /// overwhelming the Real-Debrid API rate limit (250 requests/minute).
+  private static let maxConcurrentRequests = 3
+
   /**
    Processes a list of magnet URLs through Real-Debrid and returns an async
    stream of the resulting download URLs.
@@ -25,37 +29,71 @@ extension Executable {
     return AsyncStream { continuation in
       let client = RealDebrid.Client(apiKey: apiKey)
       Task {
-        await withDiscardingTaskGroup { group in
-          for magnetURL in urls {
+        await withTaskGroup(of: Void.self) { group in
+          var iterator = urls.makeIterator()
+          var activeCount = 0
+
+          // Start initial batch of concurrent tasks
+          while activeCount < Self.maxConcurrentRequests, let magnetURL = iterator.next() {
             group.addTask {
-              do {
-                try await processMagnetURL(magnetURL, client: client) {
-                  continuation.yield(($0, $1))
-                }
-              } catch let error as LocalizedError {
-                await logger.error(
-                  "Error when processing URL",
-                  metadata: [
-                    "url": .stringConvertible(magnetURL),
-                    "errorDescription": .string(error.localizedDescription),
-                    "failureReason": .string(error.failureReason ?? ""),
-                    "recoverySuggestion": .string(error.recoverySuggestion ?? "")
-                  ]
-                )
-              } catch {
-                await logger.error(
-                  "Error when processing URL",
-                  metadata: [
-                    "url": .stringConvertible(magnetURL),
-                    "errorDescription": .string(error.localizedDescription)
-                  ]
+              await self.processMagnetURLWithLogging(
+                magnetURL,
+                client: client,
+                continuation: continuation
+              )
+            }
+            activeCount += 1
+          }
+
+          // As each task completes, start the next one
+          while activeCount > 0 {
+            await group.next()
+            activeCount -= 1
+
+            if let magnetURL = iterator.next() {
+              group.addTask {
+                await self.processMagnetURLWithLogging(
+                  magnetURL,
+                  client: client,
+                  continuation: continuation
                 )
               }
+              activeCount += 1
             }
           }
         }
         continuation.finish()
       }
+    }
+  }
+
+  private func processMagnetURLWithLogging(
+    _ magnetURL: URL,
+    client: RealDebrid.Client,
+    continuation: AsyncStream<(original: URL, debrided: URL)>.Continuation
+  ) async {
+    do {
+      try await processMagnetURL(magnetURL, client: client) {
+        continuation.yield(($0, $1))
+      }
+    } catch let error as LocalizedError {
+      await logger.error(
+        "Error when processing URL",
+        metadata: [
+          "url": .stringConvertible(magnetURL),
+          "errorDescription": .string(error.localizedDescription),
+          "failureReason": .string(error.failureReason ?? ""),
+          "recoverySuggestion": .string(error.recoverySuggestion ?? "")
+        ]
+      )
+    } catch {
+      await logger.error(
+        "Error when processing URL",
+        metadata: [
+          "url": .stringConvertible(magnetURL),
+          "errorDescription": .string(error.localizedDescription)
+        ]
+      )
     }
   }
 

@@ -181,24 +181,36 @@ enum RealDebrid {
 
     @discardableResult
     private func executeRequest(_ request: URLRequest) async throws -> Data {
-      let (data, response) = try await URLSession.shared.data(for: request)
-      guard let response = response as? HTTPURLResponse else {
-        throw RealDebridAPIError.badRepsonse(response)
-      }
+      try await withRetry(
+        shouldRetry: { error in
+          if case RealDebridAPIError.rateLimited = error { return true }
+          return false
+        },
+        operation: {
+          let (data, response) = try await URLSession.shared.data(for: request)
+          guard let response = response as? HTTPURLResponse else {
+            throw RealDebridAPIError.badRepsonse(response)
+          }
 
-      await logger.debug(
-        "Response from Real-Debrid: \(response.statusCode)",
-        metadata: [
-          "url": .stringConvertible(request.url!),
-          "body": .string(.init(data: data, encoding: .utf8) ?? "<invalid utf8>")
-        ]
+          await logger.debug(
+            "Response from Real-Debrid: \(response.statusCode)",
+            metadata: [
+              "url": .stringConvertible(request.url!),
+              "body": .string(.init(data: data, encoding: .utf8) ?? "<invalid utf8>")
+            ]
+          )
+
+          if response.statusCode == 429 {
+            throw RealDebridAPIError.rateLimited(response, body: data)
+          }
+
+          guard response.statusCode / 100 == 2 else {
+            throw RealDebridAPIError.badResponseStatus(response, body: data)
+          }
+
+          return data
+        }
       )
-
-      guard response.statusCode / 100 == 2 else {
-        throw RealDebridAPIError.badResponseStatus(response, body: data)
-      }
-
-      return data
     }
   }
 

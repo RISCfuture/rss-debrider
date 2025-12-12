@@ -58,6 +58,14 @@ enum RealDebridAPIError: Swift.Error {
    - Parameter body: The body of the response.
    */
   case badResponseStatus(_ response: HTTPURLResponse, body: Data)
+
+  /**
+   Thrown when the API rate limit is exceeded (HTTP 429).
+  
+   - Parameter response: The response that was received.
+   - Parameter body: The body of the response.
+   */
+  case rateLimited(_ response: HTTPURLResponse, body: Data)
 }
 
 /// Errors thrown when Real-Debrid cannot download a torrent.
@@ -163,6 +171,12 @@ extension RealDebridAPIError: LocalizedError {
           default:
             return String(localized: "The server returned HTTP status \(response.statusCode).")
         }
+
+      case let .rateLimited(_, body):
+        if let errorMessage = realDebridError(body: body) {
+          return errorMessage
+        }
+        return String(localized: "Rate limited by Real-Debrid API (250 requests/minute limit).")
     }
   }
 
@@ -180,6 +194,9 @@ extension RealDebridAPIError: LocalizedError {
           default:
             return nil
         }
+
+      case .rateLimited:
+        return String(localized: "Wait a moment and try again, or reduce request frequency.")
     }
   }
 
