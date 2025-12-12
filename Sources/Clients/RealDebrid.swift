@@ -171,10 +171,8 @@ enum RealDebrid {
 
       if let bodyParameters {
         var bodyComponents = URLComponents()
-        bodyComponents.queryItems = bodyParameters.map {
-          URLQueryItem(name: $0.key, value: $0.value)
-        }
-        request.httpBody = bodyComponents.query?.data(using: .utf8)
+        bodyComponents.setFormEncodedQueryItems(bodyParameters)
+        request.httpBody = bodyComponents.percentEncodedQuery?.data(using: .utf8)
       }
 
       return request
